@@ -1,4 +1,4 @@
 # Rust-template
 
-+ rust/ - Chapter 1. Truth or Consequnces
-+ echor/ - Chapter 2. Test for Echo
++ 01_rust/ - Truth or Consequnces
++ 02_echor/ - Test for Echo
