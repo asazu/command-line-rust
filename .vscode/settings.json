@@ -1,0 +1,7 @@
+{
+    "rust-analyzer.linkedProjects": [
+        "./05_wcr/Cargo.toml"
+    ],
+    "rust-analyzer.inlayHints.typeHints.hideClosureInitialization": false,
+    "rust-analyzer.inlayHints.typeHints.enable": false
+}
