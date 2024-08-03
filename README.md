@@ -6,3 +6,4 @@
 + 04_headr/ - Head Aches
 + 05_wcr/ - Word to Your Mother
 + 06_uniqr/ - Den of Uniquity
++ 07_findr/ - Finders Keepers
