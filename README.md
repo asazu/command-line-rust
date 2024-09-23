@@ -7,3 +7,4 @@
 + 05_wcr/ - Word to Your Mother
 + 06_uniqr/ - Den of Uniquity
 + 07_findr/ - Finders Keepers
++ 08_cutr/ - Shave and a Haircut

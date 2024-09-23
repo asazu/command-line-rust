@@ -1,0 +1,19 @@
+[package]
+name = "cutr"
+description = "Rust cut"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { version = "4.5.7", features = ["derive"]}
+map-ok = "1.0.0"
+thiserror = "1.0.63"
+
+[dev-dependencies]
+anyhow = "1.0.83"
+assert_cmd = "2.0.13"
+predicates = "3.1.0"
+pretty_assertions = "1.4.0"
+rand = "0.8.5"
