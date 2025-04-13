@@ -11,5 +11,6 @@ members = [
     "08_cutr",
     "09_grepr",
     "10_commr",
-    "11_tailr"
+    "11_tailr",
+    "12_fortuner",
 ]
