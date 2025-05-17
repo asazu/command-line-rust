@@ -13,3 +13,4 @@
 + 11_tailr/ - Tailer Swyfte
 + 12_fortuner/ - Fortunate Son
 + 13_calr/ - Rascalry 
++ 14_lsr/ - Elless Island
