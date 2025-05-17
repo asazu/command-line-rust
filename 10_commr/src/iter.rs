@@ -86,7 +86,7 @@ where
     merge_by(left, right, move |l, r| match (l, r) {
         (Err(_), _) => Choice::Left,
         (_, Err(_)) => Choice::Right,
-        (Ok(ref l), Ok(ref r)) => choice(l, r),
+        (Ok(l), Ok(r)) => choice(l, r),
     })
     .map(|x| match x {
         (None, None) => unreachable!(),

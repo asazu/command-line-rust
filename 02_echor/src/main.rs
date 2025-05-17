@@ -10,18 +10,18 @@ fn main() {
                 .value_name("TEXT")
                 .help("Input text")
                 .required(true)
-                .min_values(1)
+                .min_values(1),
         )
         .arg(
             Arg::with_name("omit_newline")
                 .short("n")
                 .help("Do not print newline")
-                .takes_value(false)
+                .takes_value(false),
         )
         .get_matches();
 
-        let text = matches.values_of_lossy("text").unwrap().join(" ");
-        let omit_newline = matches.is_present("omit_newline");
+    let text = matches.values_of_lossy("text").unwrap().join(" ");
+    let omit_newline = matches.is_present("omit_newline");
 
-        print!("{}{}", text, if omit_newline { "" } else { "\n" });
+    print!("{}{}", text, if omit_newline { "" } else { "\n" });
 }

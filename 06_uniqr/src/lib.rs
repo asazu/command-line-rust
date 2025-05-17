@@ -2,7 +2,7 @@ mod io;
 mod iter;
 mod unique;
 
-use self::io::{create_file, do_io_task, open_file, IOError};
+use self::io::{IOError, create_file, do_io_task, open_file};
 use self::unique::unique;
 use clap::{App, Arg};
 use std::io::{BufRead, BufReader, BufWriter, Write};

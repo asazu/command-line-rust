@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use thiserror::Error;
 
 mod range;
-use range::{parser, RangeFilterEx, RangeList};
+use range::{RangeFilterEx, RangeList, parser};
 
 #[derive(Error, Debug)]
 pub enum MyError {

@@ -152,9 +152,5 @@ pub fn run(args: Args) -> Result<(), MyError> {
             has_error = true;
         }
     }
-    if has_error {
-        Err(MyError())
-    } else {
-        Ok(())
-    }
+    if has_error { Err(MyError()) } else { Ok(()) }
 }

@@ -1,6 +1,6 @@
 use anyhow::{anyhow, bail};
 use clap::Parser;
-use rand::{rngs::SmallRng, Rng, SeedableRng};
+use rand::{Rng, SeedableRng, rngs::SmallRng};
 use regex::{Regex, RegexBuilder};
 use std::fs::{self, DirEntry, File};
 use std::io::{self, BufRead, BufReader, Read, Seek, SeekFrom};

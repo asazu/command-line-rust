@@ -29,6 +29,7 @@ where
 
 type _Eq<T> = fn(&T, &T) -> bool;
 
+#[allow(dead_code)]
 pub trait Unique: Iterator {
     fn uniq(self) -> Uniq<Peekable<Self>, _Eq<Self::Item>>
     where

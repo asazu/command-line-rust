@@ -1,4 +1,4 @@
-use clap::{builder::PossibleValue, Parser, ValueEnum};
+use clap::{Parser, ValueEnum, builder::PossibleValue};
 use regex::Regex;
 use std::collections::VecDeque;
 use std::ffi::OsStr;

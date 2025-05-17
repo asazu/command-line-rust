@@ -7,7 +7,7 @@ pub struct RangeFilter<'a, I> {
     rest: usize,
 }
 
-impl<'a, I> RangeFilter<'a, I> {
+impl<I> RangeFilter<'_, I> {
     fn new(iter: I, range_list: &RangeList) -> RangeFilter<I> {
         RangeFilter {
             iter,

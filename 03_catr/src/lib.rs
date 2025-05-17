@@ -1,7 +1,7 @@
 use clap::{App, Arg};
 use std::error::Error;
 use std::fs::File;
-use std::io::{stdin, BufRead, BufReader};
+use std::io::{BufRead, BufReader, stdin};
 
 type MyResult<T> = Result<T, Box<dyn Error>>;
 
@@ -22,22 +22,22 @@ pub fn get_args() -> MyResult<Config> {
                 .value_name("FILE")
                 .help("Input file(s)")
                 .multiple(true)
-                .default_value("-")
+                .default_value("-"),
         )
         .arg(
             Arg::with_name("numbers_lines")
-            	.short("n")
+                .short("n")
                 .long("number")
                 .help("Numbers all output lines")
                 .takes_value(false)
-                .conflicts_with("numbers_nonblank_lines")
+                .conflicts_with("numbers_nonblank_lines"),
         )
         .arg(
             Arg::with_name("numbers_nonblank_lines")
-            	.short("b")
+                .short("b")
                 .long("number-nonblank")
                 .help("Numbers nonempty output lines. Cannot use with -n")
-                .takes_value(false)
+                .takes_value(false),
         )
         .get_matches();
 
@@ -63,25 +63,29 @@ struct CatFunc {
 
 fn select_cat_func(config: &Config) -> CatFunc {
     if config.numbers_lines {
-        CatFunc{
-            count: | n, _ | *n += 1,
-            print: | n, str | println!("{:6}\t{}", n, str),
+        CatFunc {
+            count: |n, _| *n += 1,
+            print: |n, str| println!("{:6}\t{}", n, str),
         }
     } else if config.numbers_nonblank_lines {
-        CatFunc{
-            count: | n, str | if !str.is_empty() { *n += 1 },
-            print: | n, str | {
+        CatFunc {
+            count: |n, str| {
+                if !str.is_empty() {
+                    *n += 1
+                }
+            },
+            print: |n, str| {
                 if str.is_empty() {
                     println!();
                 } else {
                     println!("{:6}\t{}", n, str);
                 }
-            }
+            },
         }
     } else {
-        CatFunc{
-            count: | _, _ | {},
-            print: | _, str | println!("{}", str),
+        CatFunc {
+            count: |_, _| {},
+            print: |_, str| println!("{}", str),
         }
     }
 }
@@ -91,7 +95,7 @@ pub fn run(config: Config) -> MyResult<()> {
     let mut line_count = 0;
 
     for filename in &config.files {
-        match open(&filename) {
+        match open(filename) {
             Err(e) => eprintln!("Failed to open {}: {}", filename, e),
             Ok(input) => {
                 for line in input.lines() {
@@ -99,7 +103,7 @@ pub fn run(config: Config) -> MyResult<()> {
                     (cat_func.count)(&mut line_count, &line);
                     (cat_func.print)(&line_count, &line);
                 }
-            },
+            }
         }
     }
     Ok(())

@@ -1,7 +1,7 @@
 use assert_cmd::Command;
 use predicates::prelude::*;
-use std::fs;
 use std::error::Error;
+use std::fs;
 
 type TestResult = Result<(), Box<dyn Error>>;
 
@@ -25,7 +25,7 @@ fn usage() -> TestResult {
 #[test]
 fn skips_bad_file() -> TestResult {
     let file = "blargh";
-    let expected = format!{"{}: .* [(]os error 2[)]", file};
+    let expected = format! {"{}: .* [(]os error 2[)]", file};
     Command::cargo_bin(PRG)?
         .arg(file)
         .assert()
@@ -52,7 +52,7 @@ fn empty() -> TestResult {
 #[test]
 fn empty_n() -> TestResult {
     for flag in &["-n", "--number"] {
-		run(&[EMPTY, flag], "tests/expected/empty.txt.n.out")?
+        run(&[EMPTY, flag], "tests/expected/empty.txt.n.out")?
     }
     Ok(())
 }
@@ -73,7 +73,7 @@ fn fox() -> TestResult {
 #[test]
 fn fox_n() -> TestResult {
     for flag in &["-n", "--number"] {
-		run(&[FOX, flag], "tests/expected/fox.txt.n.out")?
+        run(&[FOX, flag], "tests/expected/fox.txt.n.out")?
     }
     Ok(())
 }
@@ -94,7 +94,7 @@ fn spiders() -> TestResult {
 #[test]
 fn spiders_n() -> TestResult {
     for flag in &["-n", "--number"] {
-		run(&[SPIDERS, flag], "tests/expected/spiders.txt.n.out")?
+        run(&[SPIDERS, flag], "tests/expected/spiders.txt.n.out")?
     }
     Ok(())
 }
@@ -115,7 +115,7 @@ fn bustle() -> TestResult {
 #[test]
 fn bustle_n() -> TestResult {
     for flag in &["-n", "--number"] {
-		run(&[BUSTLE, flag], "tests/expected/the-bustle.txt.n.out")?
+        run(&[BUSTLE, flag], "tests/expected/the-bustle.txt.n.out")?
     }
     Ok(())
 }
@@ -128,11 +128,7 @@ fn bustle_b() -> TestResult {
     Ok(())
 }
 
-fn run_stdin(
-    input_file: &str,
-    args: &[&str],
-    expected_file: &str
-) -> TestResult {
+fn run_stdin(input_file: &str, args: &[&str], expected_file: &str) -> TestResult {
     let input = fs::read_to_string(input_file)?;
     let expected = fs::read_to_string(expected_file)?;
     Command::cargo_bin(PRG)?
@@ -146,40 +142,33 @@ fn run_stdin(
 
 #[test]
 fn bustle_stdin() -> TestResult {
-    run_stdin(BUSTLE,
-        &["-"],
-        "tests/expected/the-bustle.txt.stdin.out"
-    )
+    run_stdin(BUSTLE, &["-"], "tests/expected/the-bustle.txt.stdin.out")
 }
 
 #[test]
 fn bustle_stdin_n() -> TestResult {
-    run_stdin(BUSTLE,
+    run_stdin(
+        BUSTLE,
         &["-n", "-"],
-        "tests/expected/the-bustle.txt.n.stdin.out"
+        "tests/expected/the-bustle.txt.n.stdin.out",
     )
 }
 
 #[test]
 fn bustle_stdin_b() -> TestResult {
-    run_stdin(BUSTLE,
+    run_stdin(
+        BUSTLE,
         &["-b", "-"],
-        "tests/expected/the-bustle.txt.b.stdin.out"
+        "tests/expected/the-bustle.txt.b.stdin.out",
     )
 }
 
 #[test]
 fn all() -> TestResult {
-    run(
-        &[FOX, SPIDERS, BUSTLE],
-        "tests/expected/all.out"
-    )
+    run(&[FOX, SPIDERS, BUSTLE], "tests/expected/all.out")
 }
 
 #[test]
 fn all_n() -> TestResult {
-    run(
-        &[FOX, SPIDERS, BUSTLE, "-n"],
-        "tests/expected/all.n.out"
-    )
+    run(&[FOX, SPIDERS, BUSTLE, "-n"], "tests/expected/all.n.out")
 }

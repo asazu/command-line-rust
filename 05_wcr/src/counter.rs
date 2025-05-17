@@ -2,7 +2,7 @@ use super::Count;
 use super::File;
 use super::MyResult;
 use std::fs;
-use std::io::{stdin, BufRead, BufReader};
+use std::io::{BufRead, BufReader, stdin};
 
 pub fn open(file: &File) -> MyResult<Box<dyn BufRead>> {
     let result: Box<dyn BufRead> = match file {
@@ -41,8 +41,8 @@ pub fn word_count(mut input: impl BufRead) -> MyResult<Count> {
 
 #[cfg(test)]
 mod test {
-    use super::word_count;
     use super::Count;
+    use super::word_count;
     use std::io::Cursor;
 
     #[test]

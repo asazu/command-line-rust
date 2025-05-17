@@ -1,6 +1,6 @@
-use std::fs;
 use assert_cmd::Command;
 use predicates::prelude::*;
+use std::fs;
 
 type TestResult = Result<(), Box<dyn std::error::Error>>;
 
@@ -16,9 +16,7 @@ fn dies_no_args() -> TestResult {
 fn run(args: &[&str], expected_file: &str) -> TestResult {
     let expected = fs::read_to_string(expected_file)?;
     let mut cmd = Command::cargo_bin("echor")?;
-    cmd.args(args).assert()
-        .success()
-        .stdout(expected);
+    cmd.args(args).assert().success().stdout(expected);
     Ok(())
 }
 
