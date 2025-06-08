@@ -1,7 +1,7 @@
-use headr::{get_args, run};
+use clap::Parser;
+use headr::Args;
+
 fn main() {
-    if let Err(e) = get_args().and_then(run) {
-        eprintln!("{}", e);
-        std::process::exit(1);
-    }
+    let args = Args::parse();
+    headr::run(args);
 }

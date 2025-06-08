@@ -1,122 +1,76 @@
-use clap::{App, Arg};
-use std::error::Error;
+use bstr::io::BufReadExt;
+use clap::Parser;
 use std::fs::File;
-use std::io::{BufRead, BufReader, BufWriter, Read, Write, stdin, stdout};
+use std::io::{self, BufRead, BufReader, Write};
+use std::path::{Path, PathBuf};
 
-type MyResult<T> = Result<T, Box<dyn Error>>;
+#[derive(Debug, Parser)]
+pub struct Args {
+    /// Input file(s)
+    #[arg(default_value = "-")]
+    files: Vec<PathBuf>,
 
-pub struct Config {
-    files: Vec<String>,
-    line_count: usize,
-    byte_count: Option<usize>,
+    /// Prints the first LINES
+    #[arg(short = 'n', long, default_value_t = 10)]
+    lines: usize,
+
+    /// Prints the first BYTES of each files
+    #[arg(short = 'c', long, conflicts_with = "lines")]
+    bytes: Option<usize>,
 }
 
-pub fn get_args() -> MyResult<Config> {
-    let matches = App::new("headr")
-        .version("0.1.0")
-        .author("asa@example.org")
-        .about("Rust head")
-        .arg(
-            Arg::with_name("files")
-                .value_name("FILE")
-                .multiple(true)
-                .default_value("-")
-                .help("Input file(s)"),
-        )
-        .arg(
-            Arg::with_name("line_count")
-                .short("n")
-                .long("lines")
-                .value_name("LINES")
-                .default_value("10")
-                .help("Prints the first LINES"),
-        )
-        .arg(
-            Arg::with_name("byte_count")
-                .short("c")
-                .long("bytes")
-                .takes_value(true)
-                .value_name("BYTES")
-                .help("Prints the first BYTES bytes of each file.")
-                .conflicts_with("line_count"),
-        )
-        .get_matches();
-
-    let line_count = matches
-        .value_of("line_count")
-        .map(parse_positive_int)
-        .unwrap()
-        .map_err(|e| format!("illegal line count -- {}", e))?;
-
-    let byte_count = matches
-        .value_of("byte_count")
-        .map(parse_positive_int)
-        .transpose()
-        .map_err(|e| format!("illegal byte count -- {}", e))?;
-
-    Ok(Config {
-        files: matches.values_of_lossy("files").unwrap(),
-        line_count,
-        byte_count,
+fn open(path: impl AsRef<Path>) -> io::Result<Box<dyn BufRead>> {
+    Ok(match path.as_ref().to_str() {
+        Some("-") => Box::new(io::stdin().lock()),
+        _ => Box::new(BufReader::new(File::open(path)?)),
     })
 }
 
-pub fn parse_positive_int(s: &str) -> MyResult<usize> {
-    match s.parse() {
-        Ok(n) if n > 0 => Ok(n),
-        _ => Err(s.into()),
-    }
-}
-
-fn open(filename: &str) -> MyResult<Box<dyn BufRead>> {
-    let result: Box<dyn BufRead> = match filename {
-        "-" => Box::new(BufReader::new(stdin())),
-        _ => Box::new(BufReader::new(File::open(filename)?)),
-    };
-    Ok(result)
-}
-
-fn output_lines(mut input: Box<dyn BufRead>, lines: usize) -> MyResult<()> {
-    let mut line = String::new();
-    for _ in 0..lines {
-        let bytes_read = input.read_line(&mut line)?;
-        if bytes_read == 0 {
-            break;
+fn head_lines(mut input: impl BufRead, lines: usize) -> io::Result<()> {
+    let mut out = io::stdout().lock();
+    let mut count = lines;
+    input.for_byte_line_with_terminator(|line| {
+        if count == 0 {
+            Ok(false)
+        } else {
+            out.write_all(line)?;
+            count -= 1;
+            Ok(true)
         }
-        print!("{}", line);
-        line.clear();
-    }
+    })?;
     Ok(())
 }
 
-fn output_bytes(input: Box<dyn BufRead>, bytes: usize) -> MyResult<()> {
+fn head_bytes(mut input: impl BufRead, bytes: usize) -> io::Result<()> {
     let mut buf = vec![0; bytes];
-    let bytes_read = input.take(bytes as u64).read(&mut buf)?;
-    // print!("{}", String::from_utf8_lossy(&buf[..bytes_read]));
-    let mut writer = BufWriter::new(stdout());
-    writer.write_all(&buf[..bytes_read])?;
+    let bytes = input.read(&mut buf)?;
+    io::stdout().lock().write_all(&buf[..bytes])?;
     Ok(())
 }
 
-pub fn run(config: Config) -> MyResult<()> {
-    let multiple_files = config.files.len() > 1;
-    for (i, filename) in config.files.iter().enumerate() {
-        if multiple_files {
-            if i != 0 {
-                println!();
+pub fn run(args: Args) {
+    let shows_header = args.files.len() > 1;
+
+    for (i, path) in args.files.iter().enumerate() {
+        if shows_header {
+            if i == 0 {
+                println!("==> {} <==", path.display());
+            } else {
+                println!("\n==> {} <==", path.display());
             }
-            println!("==> {} <==", filename);
         }
-        match open(filename) {
-            Err(e) => eprintln!("{}: {}", filename, e),
+        match open(path) {
+            Err(e) => eprintln!("{}: {}", path.display(), e),
             Ok(input) => {
-                if let Some(bytes) = config.byte_count {
-                    output_bytes(input, bytes)?;
+                let res = if let Some(bytes) = args.bytes {
+                    head_bytes(input, bytes)
                 } else {
-                    output_lines(input, config.line_count)?;
+                    head_lines(input, args.lines)
+                };
+                if let Err(e) = res {
+                    eprintln!("{}: {}", path.display(), e);
                 }
             }
         }
     }
-    Ok(())
 }

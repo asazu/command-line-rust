@@ -14,7 +14,7 @@ const TEN: &str = "./tests/inputs/ten.txt";
 #[test]
 fn dies_bad_bytes() -> TestResult {
     let illegal_number = "bad_bytes";
-    let expected = format!("illegal byte count -- {}", illegal_number);
+    let expected = format!("invalid value '{}' for '--bytes <BYTES>'", illegal_number);
     Command::cargo_bin(PRG)?
         .args(&["-c", illegal_number, "empty"])
         .assert()
@@ -26,7 +26,7 @@ fn dies_bad_bytes() -> TestResult {
 #[test]
 fn dies_bad_lines() -> TestResult {
     let illegal_number = "bad_lines";
-    let expected = format!("illegal line count -- {}", illegal_number);
+    let expected = format!("invalid value '{}' for '--lines <LINES>'", illegal_number);
     Command::cargo_bin(PRG)?
         .args(&["-n", illegal_number, "empty"])
         .assert()
@@ -37,7 +37,7 @@ fn dies_bad_lines() -> TestResult {
 
 #[test]
 fn dies_both_bytes_and_number() -> TestResult {
-    let msg = "The argument '--lines <LINES>' cannot be used with \
+    let msg = "the argument '--lines <LINES>' cannot be used with \
                     '--bytes <BYTES>'";
     Command::cargo_bin(PRG)?
         .args(&["-n", "1", "-c", "1"])
