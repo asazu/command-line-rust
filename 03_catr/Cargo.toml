@@ -1,12 +1,13 @@
 [package]
 name = "catr"
 version = "0.1.0"
+description = "Rust version of cat command."
 edition = "2024"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-clap = "2.33"
+anyhow = "1.0.98"
+bstr = "1.12.0"
+clap = { version = "4.5.38", features = ["derive"] }
 
 [dev-dependencies]
 assert_cmd = "2"

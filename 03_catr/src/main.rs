@@ -1,6 +1,11 @@
+use clap::Parser as _;
+
 fn main() {
-    if let Err(e) = catr::get_args().and_then(catr::run) {
-        eprint!("{}", e);
-        std::process::exit(1);
+    match catr::Args::try_parse() {
+        Ok(args) => catr::run(args),
+        Err(e) => {
+            eprintln!("{}", e);
+            std::process::exit(1);
+        }
     }
 }

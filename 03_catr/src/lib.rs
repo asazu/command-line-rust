@@ -1,110 +1,86 @@
-use clap::{App, Arg};
-use std::error::Error;
+use bstr::io::BufReadExt;
+use clap::{arg, Parser};
 use std::fs::File;
-use std::io::{BufRead, BufReader, stdin};
+use std::io::{self, BufRead, BufReader, Write};
+use std::path::{Path, PathBuf};
 
-type MyResult<T> = Result<T, Box<dyn Error>>;
+#[derive(Parser, Debug)]
+#[command(version, about)]
+pub struct Args {
+    /// Input file(s). With no FILE, or when FILE is -, read standard input
+    #[arg(value_name = "FILE")]
+    files: Vec<PathBuf>,
 
-#[derive(Debug)]
-pub struct Config {
-    files: Vec<String>,
-    numbers_lines: bool,
-    numbers_nonblank_lines: bool,
+    /// Number all output lines
+    #[arg(short, long)]
+    number: bool,
+
+    /// Number nonempty output lines. Cannot use with -n
+    #[arg(short = 'b', long, conflicts_with("number"))]
+    number_nonblank: bool,
 }
 
-pub fn get_args() -> MyResult<Config> {
-    let matches = App::new("catr")
-        .version("0.1.0")
-        .author("asa@example.org")
-        .about("Rust cat")
-        .arg(
-            Arg::with_name("file")
-                .value_name("FILE")
-                .help("Input file(s)")
-                .multiple(true)
-                .default_value("-"),
-        )
-        .arg(
-            Arg::with_name("numbers_lines")
-                .short("n")
-                .long("number")
-                .help("Numbers all output lines")
-                .takes_value(false)
-                .conflicts_with("numbers_nonblank_lines"),
-        )
-        .arg(
-            Arg::with_name("numbers_nonblank_lines")
-                .short("b")
-                .long("number-nonblank")
-                .help("Numbers nonempty output lines. Cannot use with -n")
-                .takes_value(false),
-        )
-        .get_matches();
+struct Cat<'a> {
+    shows_line_count: bool,
+    shouws_line_count_nonblank: bool,
+    line_count: usize,
+    line_count_nonblank: usize,
+    out: &'a mut dyn Write,
+}
 
-    Ok(Config {
-        files: matches.values_of_lossy("file").unwrap(),
-        numbers_lines: matches.is_present("numbers_lines"),
-        numbers_nonblank_lines: matches.is_present("numbers_nonblank_lines"),
+impl<'a> Cat<'a> {
+    fn new(args: &Args, out: &'a mut dyn Write) -> Self {
+        Cat {
+            shows_line_count: args.number,
+            shouws_line_count_nonblank: args.number_nonblank,
+            line_count: 0,
+            line_count_nonblank: 0,
+            out,
+        }
+    }
+
+    fn count_line(&mut self, line: &[u8]) {
+        self.line_count += 1;
+        if line != b"\n" {
+            self.line_count_nonblank += 1;
+        }
+    }
+
+    fn print_line(&mut self, line: &[u8]) -> io::Result<()> {
+        if self.shows_line_count{
+            write!(self.out, "{:6}\t", self.line_count)?;
+        } else if self.shouws_line_count_nonblank && line != b"\n" {
+            write!(self.out, "{:6}\t", self.line_count_nonblank)?;
+        }
+        self.out.write_all(line)
+    }
+
+    fn print(&mut self, mut input: &mut dyn BufRead) -> io::Result<()> {
+        input.for_byte_line_with_terminator(|line| {
+            self.count_line(line);
+            self.print_line(line)?;
+            Ok(true)
+        })
+    }
+}
+
+fn open(path: impl AsRef<Path>) -> io::Result<Box<dyn BufRead>> {
+    Ok(match path.as_ref().to_str() {
+        Some("-") => Box::new(io::stdin().lock()),
+        _ => Box::new(BufReader::new(File::open(path)?)),
     })
 }
 
-fn open(filename: &str) -> MyResult<Box<dyn BufRead>> {
-    let result: Box<dyn BufRead> = match filename {
-        "-" => Box::new(BufReader::new(stdin())),
-        _ => Box::new(BufReader::new(File::open(filename)?)),
-    };
-    Ok(result)
-}
+pub fn run(args: Args) {
+    let mut out = io::stdout().lock();
+    let mut cat = Cat::new(&args, &mut out);
 
-struct CatFunc {
-    count: fn(&mut i32, &str),
-    print: fn(&i32, &str),
-}
+    for file in &args.files {
+        let res = open(file)
+            .and_then(|mut input| cat.print(&mut input));
 
-fn select_cat_func(config: &Config) -> CatFunc {
-    if config.numbers_lines {
-        CatFunc {
-            count: |n, _| *n += 1,
-            print: |n, str| println!("{:6}\t{}", n, str),
-        }
-    } else if config.numbers_nonblank_lines {
-        CatFunc {
-            count: |n, str| {
-                if !str.is_empty() {
-                    *n += 1
-                }
-            },
-            print: |n, str| {
-                if str.is_empty() {
-                    println!();
-                } else {
-                    println!("{:6}\t{}", n, str);
-                }
-            },
-        }
-    } else {
-        CatFunc {
-            count: |_, _| {},
-            print: |_, str| println!("{}", str),
+        if let Err(e) = res {
+            eprintln!("{}: {}", file.display(), e);
         }
     }
-}
-
-pub fn run(config: Config) -> MyResult<()> {
-    let cat_func = select_cat_func(&config);
-    let mut line_count = 0;
-
-    for filename in &config.files {
-        match open(filename) {
-            Err(e) => eprintln!("Failed to open {}: {}", filename, e),
-            Ok(input) => {
-                for line in input.lines() {
-                    let line = line?;
-                    (cat_func.count)(&mut line_count, &line);
-                    (cat_func.print)(&line_count, &line);
-                }
-            }
-        }
-    }
-    Ok(())
 }
